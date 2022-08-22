@@ -1,3 +1,4 @@
+from copy import deepcopy
 import torch
 import numpy as np
 
@@ -22,3 +23,29 @@ class DQNPolicy(object):
     :param lr_scheduler: a learning rate scheduler that adjusts the learning rate in
         optimizer in each policy.update(). Default to None (no lr_scheduler).
     """
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        optim: torch.optim.Optimizer,
+        discount_factor: float = 0.99,
+        estimation_step: int = 1,
+        target_update_freq: int = 0,
+        reward_normalization: bool = False,
+        is_double: bool = True,
+        clip_loss_grad: bool = False) -> None:
+        # init global parameters
+        self.model = model
+        self.optim = optim
+        self.eps = 0.0
+        self._gamma = discount_factor
+        self._n_step = estimation_step
+        self._target = target_update_freq > 0 
+        self._freq_upate = target_update_freq
+        self._iter_number = 0
+        if self._target:
+            self.memory_old = deepcopy(self.model)
+            self.memory_old.eval()
+        self._rew_norm = reward_normalization
+        self._is_double = is_double
+        self._clip_loss_grad = clip_loss_grad
+    
